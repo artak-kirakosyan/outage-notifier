@@ -109,6 +109,16 @@ VEOLIA_TELEGRAM_FETCH_INTERVAL_MINUTES = int(
     os.environ.get("VEOLIA_TELEGRAM_FETCH_INTERVAL_MINUTES", "15")
 )
 
+def _env_bool(name: str, default: bool) -> bool:
+    return os.environ.get(name, str(default)).strip().lower() in ("1", "true", "yes", "on")
+
+
+# Per-provider on/off switch — respected ONLY by `run_scheduler`. Running
+# a `fetch_*` management command directly ignores this
+ENA_FETCH_ENABLED = _env_bool("ENA_FETCH_ENABLED", True)
+VEOLIA_WEB_FETCH_ENABLED = _env_bool("VEOLIA_WEB_FETCH_ENABLED", True)
+VEOLIA_TELEGRAM_FETCH_ENABLED = _env_bool("VEOLIA_TELEGRAM_FETCH_ENABLED", True)
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
