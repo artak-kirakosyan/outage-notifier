@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 # uv is a single static binary — copy it in rather than pip-installing it,
 # per the project's chosen tooling.
