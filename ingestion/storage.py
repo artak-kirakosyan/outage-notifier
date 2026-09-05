@@ -38,9 +38,8 @@ def save_raw_content(
     error_message: str = "",
 ) -> RawContent:
     """
-    Persist one fetch attempt: one DB row (source of truth, always
-    written — including failures, so we can see fetch reliability over
-    time) plus, on success, a mirrored plain-text file on disk under
+    Persist one fetch attempt: one DB row (source of truth for this
+    attempt) plus, on success, a mirrored plain-text file on disk under
     settings.RAW_DUMP_DIRECTORY/<provider>/. The file dump is disposable
     and purely for convenient manual eyeballing while designing the
     Phase 1 parser; if it fails, we log and move on rather than losing

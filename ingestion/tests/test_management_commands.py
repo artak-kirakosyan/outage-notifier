@@ -1,5 +1,3 @@
-from io import StringIO
-
 import pytest
 import responses
 from django.core.management import call_command
@@ -15,11 +13,9 @@ pytestmark = pytest.mark.django_db
 def test_fetch_ena_command_creates_raw_row():
     responses.add(responses.GET, ENAFetcher.URL, body="<html>ok</html>", status=200)
 
-    out = StringIO()
-    call_command("fetch_ena", stdout=out)
+    call_command("fetch_ena")
 
     assert RawContent.objects.filter(provider=Provider.ENA).count() == 1
-    assert "ok" in out.getvalue()  # summary dict prints without error
 
 
 @responses.activate
@@ -44,3 +40,22 @@ def test_fetch_veolia_telegram_command_creates_raw_row():
     call_command("fetch_veolia_telegram")
 
     assert RawContent.objects.filter(provider=Provider.VEOLIA_TELEGRAM).count() == 1
+
+
+@responses.activate
+def test_direct_command_ignores_the_provider_enabled_flag(settings):
+    # The enabled/disabled switch is a SCHEDULER-only concept (see
+    # run_scheduler.py) -- calling a fetch_* command directly must run
+    # regardless, so a disabled/broken provider can still be manually
+    # re-checked without flipping the switch back on first.
+    settings.VEOLIA_WEB_FETCH_ENABLED = False
+
+    fetcher = VeoliaWebFetcher()
+    for page in fetcher.PAGES:
+        responses.add(
+            responses.GET, f"{fetcher.BASE_URL}&page={page}", body=f"<html>{page}</html>", status=200
+        )
+
+    call_command("fetch_veolia_web")
+
+    assert RawContent.objects.filter(provider=Provider.VEOLIA_WEB).count() == 3

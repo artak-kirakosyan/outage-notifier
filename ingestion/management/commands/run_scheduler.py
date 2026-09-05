@@ -33,32 +33,29 @@ def _make_guarded_run(command_name: str, enabled_setting_name: str):
 class Command(BaseCommand):
     help = (
         "Run all Phase 0.5 fetchers forever, each on its own interval. "
-        "Providers can be disabled via *_FETCH_ENABLED settings/env "
-        "(see .env.example) — the job stays scheduled and logs a skip "
-        "message on each tick rather than being removed entirely."
+        "See *_FETCH_ENABLED settings/env to disable a provider."
     )
 
     def handle(self, *args, **options):
-        jobs = [
-            Job(
-                "fetch_ena",
-                _make_guarded_run("fetch_ena", "ENA_FETCH_ENABLED"),
-                settings.ENA_FETCH_INTERVAL_MINUTES * 60,
-            ),
-            Job(
-                "fetch_veolia_web",
-                _make_guarded_run("fetch_veolia_web", "VEOLIA_WEB_FETCH_ENABLED"),
-                settings.VEOLIA_WEB_FETCH_INTERVAL_MINUTES * 60,
-            ),
-            Job(
+        # (command name, enabled-flag setting name, interval setting)
+        provider_configs = [
+            ("fetch_ena", "ENA_FETCH_ENABLED", settings.ENA_FETCH_INTERVAL_MINUTES),
+            ("fetch_veolia_web", "VEOLIA_WEB_FETCH_ENABLED", settings.VEOLIA_WEB_FETCH_INTERVAL_MINUTES),
+            (
                 "fetch_veolia_telegram",
-                _make_guarded_run("fetch_veolia_telegram", "VEOLIA_TELEGRAM_FETCH_ENABLED"),
-                settings.VEOLIA_TELEGRAM_FETCH_INTERVAL_MINUTES * 60,
+                "VEOLIA_TELEGRAM_FETCH_ENABLED",
+                settings.VEOLIA_TELEGRAM_FETCH_INTERVAL_MINUTES,
             ),
         ]
 
-        for job in jobs:
-            self.stdout.write(f"Scheduling {job.name} every {job.interval_seconds // 60} min")
+        jobs = [
+            Job(name, _make_guarded_run(name, enabled_setting), interval_minutes * 60)
+            for name, enabled_setting, interval_minutes in provider_configs
+        ]
+
+        for (name, enabled_setting, _), job in zip(provider_configs, jobs):
+            disabled_note = "" if getattr(settings, enabled_setting) else " (disabled)"
+            self.stdout.write(f"Scheduling {job.name} every {job.interval_seconds // 60} min{disabled_note}")
 
         stop_event = threading.Event()
         threads = start_scheduler(jobs, stop_event)

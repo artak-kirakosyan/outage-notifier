@@ -113,8 +113,8 @@ def _env_bool(name: str, default: bool) -> bool:
     return os.environ.get(name, str(default)).strip().lower() in ("1", "true", "yes", "on")
 
 
-# Per-provider on/off switch — respected ONLY by `run_scheduler`. Running
-# a `fetch_*` management command directly ignores this
+# Per-provider on/off switch for the scheduler (see run_scheduler.py for
+# what "disabled" actually does).
 ENA_FETCH_ENABLED = _env_bool("ENA_FETCH_ENABLED", True)
 VEOLIA_WEB_FETCH_ENABLED = _env_bool("VEOLIA_WEB_FETCH_ENABLED", True)
 VEOLIA_TELEGRAM_FETCH_ENABLED = _env_bool("VEOLIA_TELEGRAM_FETCH_ENABLED", True)

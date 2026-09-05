@@ -10,7 +10,7 @@ narrow on purpose.
 ## Stack
 
 - Python 3.14, [uv](https://docs.astral.sh/uv/) for dependency management
-- Django 5.1 — used as an ORM + admin + migrations toolkit, **not** as a
+- Django 5.2 — used as an ORM + admin + migrations toolkit, **not** as a
   web app. There are no views/templates beyond `/admin/`.
 - SQLite for now, swappable to Postgres later via `outage_notifier/settings/base.py`'s
   `DATABASES` dict — nothing else in the codebase talks to the DB except
